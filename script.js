@@ -5,19 +5,34 @@ let firstClick = true; // Track if it's the first click
 const clickSound = document.getElementById('click-sound');
 const flagSound = document.getElementById('flag-sound');
 const explosionSound = document.getElementById('explosion-sound');
+let isGameRunning = false;
+const gameOverMessage = document.getElementById('game-over-message');
+const popupNotification = document.getElementById('popup-notification');
+const restartButton = document.getElementById('restart-button');
+const overlay = document.getElementById('overlay');
+
 
 const gridSize = 10;
 const mineCount = 10;
 let mineField = [];
 let revealedCells = 0;
 
-// Initialize game
+// Initialize or restart the game
 function initGame() {
     mineField = createEmptyField();
     firstClick = true;
     revealedCells = 0;
+    isGameRunning = true; // Game is now active
     drawField();
+    
+    // Show start notification
+    showPopupNotification("Welcome to Minesweeper! Click any cell to start.");
+    
+    // Update button to "Restart Game" mode
+    updateButtonState();
+    hideOverlay(); // Ensure the overlay is hidden when starting a new game
 }
+
 
 // Create a grid filled with cells
 function createEmptyField() {
@@ -102,7 +117,7 @@ function handleCellRightClick(event) {
 
 // Toggle flagging a cell
 function toggleFlag(x, y) {
-    if (mineField[x][y].revealed) return;
+    if (!isGameRunning || mineField[x][y].revealed) return; // Only allow flagging if game is running
 
     const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
 
@@ -122,6 +137,8 @@ function toggleFlag(x, y) {
 
 // Handle cell click with first-click logic
 function handleCellClick(event) {
+    if (!isGameRunning) return; // Ignore clicks if game is not running
+
     const x = parseInt(event.target.dataset.x);
     const y = parseInt(event.target.dataset.y);
 
@@ -137,7 +154,7 @@ function handleCellClick(event) {
 
 // Reveal cell and check for game over
 function revealCell(x, y) {
-    if (mineField[x][y].revealed || mineField[x][y].flagged) return;
+    if (!isGameRunning || mineField[x][y].revealed || mineField[x][y].flagged) return;
 
     mineField[x][y].revealed = true;
     revealedCells++;
@@ -148,8 +165,8 @@ function revealCell(x, y) {
     if (mineField[x][y].mine) {
         cell.classList.add('mine');
         playSound(explosionSound); // Play explosion sound for mine
-        alert("Game Over! You hit a mine.");
-        initGame();
+        revealAllMines(); // Reveal all mines
+        showGameOverMessage(); // Show custom game-over message
     } else {
         cell.textContent = mineField[x][y].neighborCount > 0 ? mineField[x][y].neighborCount : '';
         if (mineField[x][y].neighborCount === 0) {
@@ -157,8 +174,9 @@ function revealCell(x, y) {
         }
 
         if (revealedCells === gridSize * gridSize - mineCount) {
-            alert("Congratulations! You cleared the board!");
-            initGame();
+            showPopupNotification("Congratulations! You cleared the board!", true);
+            isGameRunning = false;
+            updateButtonState();
         }
     }
 }
@@ -180,6 +198,83 @@ function revealEmptyNeighbors(x, y) {
 function playSound(sound) {
     sound.currentTime = 0; // Reset sound if it’s already playing
     sound.play();
+}
+
+// Show game over message
+function showGameOverMessage() {
+    isGameRunning = false; // Stop the game
+    
+    // Animate end-game notification
+    showPopupNotification("Game Over! You hit a mine. 😢", true);
+    
+    // Update button to "Start Game" mode
+    updateButtonState();
+}
+
+function revealAllMines() {
+    for (let x = 0; x < gridSize; x++) {
+        for (let y = 0; y < gridSize; y++) {
+            if (mineField[x][y].mine) {
+                const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                cell.classList.add('mine', 'revealed');
+                cell.textContent = '💣';
+            }
+        }
+    }
+}
+
+// Reveal all mines on game over
+function revealAllMines() {
+    for (let x = 0; x < gridSize; x++) {
+        for (let y = 0; y < gridSize; y++) {
+            if (mineField[x][y].mine) {
+                const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                cell.classList.add('mine', 'revealed');
+                cell.textContent = '💣';
+            }
+        }
+    }
+}
+
+// Show popup notification with animation
+function showPopupNotification(message, isEndGame = false) {
+    popupNotification.textContent = message;
+    popupNotification.classList.add('visible');
+    
+    if (isEndGame) {
+        popupNotification.classList.add('end-animation');
+        showOverlay(); // Show overlay on game over
+    } else {
+        popupNotification.classList.remove('end-animation');
+    }
+
+    // Hide the notification automatically after 2.5 seconds
+    setTimeout(() => {
+        popupNotification.classList.remove('visible');
+        if (isEndGame) {
+            hideOverlay(); // Hide overlay after the notification
+        }
+    }, 2500);
+}
+
+function updateButtonState() {
+    if (isGameRunning) {
+        restartButton.textContent = "Restart Game";
+        restartButton.classList.add('running');
+    } else {
+        restartButton.textContent = "Start Game";
+        restartButton.classList.remove('running');
+    }
+}
+
+// Show overlay
+function showOverlay() {
+    overlay.style.display = 'block';
+}
+
+// Hide overlay
+function hideOverlay() {
+    overlay.style.display = 'none';
 }
 
 // Initialize the game on page load
