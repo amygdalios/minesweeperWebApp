@@ -8,7 +8,17 @@
 </head>
 <body>
     <h1>Minesweeper</h1>
+    
+    <!-- Overlay for game over -->
+    <div id="overlay" class="hidden"></div>
+    
+    <!-- Popup Notification -->
+    <div id="popup-notification" class="hidden">Welcome to Minesweeper! Click any cell to start.</div>
+    
     <div id="game-container"></div>
+    
+    <!-- Dynamic Start/Restart Button -->
+    <button id="restart-button" onclick="initGame()">Start Game</button>
     
     <!-- Audio elements for sound effects -->
     <audio id="click-sound" src="assets/sfx/click.wav"></audio>
