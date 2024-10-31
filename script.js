@@ -2,6 +2,9 @@
 
 
 let firstClick = true; // Track if it's the first click
+const clickSound = document.getElementById('click-sound');
+const flagSound = document.getElementById('flag-sound');
+const explosionSound = document.getElementById('explosion-sound');
 
 const gridSize = 10;
 const mineCount = 10;
@@ -99,10 +102,10 @@ function handleCellRightClick(event) {
 
 // Toggle flagging a cell
 function toggleFlag(x, y) {
-    if (mineField[x][y].revealed) return; // Don't flag revealed cells
+    if (mineField[x][y].revealed) return;
 
     const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-    
+
     if (mineField[x][y].flagged) {
         // Remove flag
         mineField[x][y].flagged = false;
@@ -113,9 +116,9 @@ function toggleFlag(x, y) {
         mineField[x][y].flagged = true;
         cell.classList.add('flagged');
         cell.textContent = '🚩';
+        playSound(flagSound); // Play flag sound
     }
 }
-
 
 // Handle cell click with first-click logic
 function handleCellClick(event) {
@@ -128,21 +131,23 @@ function handleCellClick(event) {
         firstClick = false;
     }
 
+    playSound(clickSound); // Play click sound
     revealCell(x, y);
 }
 
 // Reveal cell and check for game over
 function revealCell(x, y) {
-    if (mineField[x][y].revealed) return;
-    
+    if (mineField[x][y].revealed || mineField[x][y].flagged) return;
+
     mineField[x][y].revealed = true;
     revealedCells++;
-    
+
     const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
     cell.classList.add('revealed');
-    
+
     if (mineField[x][y].mine) {
         cell.classList.add('mine');
+        playSound(explosionSound); // Play explosion sound for mine
         alert("Game Over! You hit a mine.");
         initGame();
     } else {
@@ -150,7 +155,7 @@ function revealCell(x, y) {
         if (mineField[x][y].neighborCount === 0) {
             revealEmptyNeighbors(x, y);
         }
-        
+
         if (revealedCells === gridSize * gridSize - mineCount) {
             alert("Congratulations! You cleared the board!");
             initGame();
@@ -169,6 +174,12 @@ function revealEmptyNeighbors(x, y) {
             }
         }
     }
+}
+
+// Play a sound effect
+function playSound(sound) {
+    sound.currentTime = 0; // Reset sound if it’s already playing
+    sound.play();
 }
 
 // Initialize the game on page load
