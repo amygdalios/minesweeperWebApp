@@ -1,16 +1,14 @@
 // script.js
 
-
 let firstClick = true; // Track if it's the first click
 const clickSound = document.getElementById('click-sound');
 const flagSound = document.getElementById('flag-sound');
 const explosionSound = document.getElementById('explosion-sound');
 let isGameRunning = false;
-const gameOverMessage = document.getElementById('game-over-message');
 const popupNotification = document.getElementById('popup-notification');
 const restartButton = document.getElementById('restart-button');
-const overlay = document.getElementById('overlay');
-
+let timerInterval;
+let remainingFlags = 10;
 
 const gridSize = 10;
 const mineCount = 10;
@@ -19,18 +17,35 @@ let revealedCells = 0;
 
 // Initialize or restart the game
 function initGame() {
+
     mineField = createEmptyField();
     firstClick = true;
     revealedCells = 0;
     isGameRunning = true; // Game is now active
     drawField();
-    
+
     // Show start notification
     showPopupNotification("Welcome to Minesweeper! Click any cell to start.");
     
     // Update button to "Restart Game" mode
     updateButtonState();
-    hideOverlay(); // Ensure the overlay is hidden when starting a new game
+}
+
+function onCellClick(cell) {
+
+    // Game logic to reveal cell or handle mine (simplified for example)
+    if (cell.classList.contains('mine')) {
+        endGame(false); // Game over if mine is clicked
+    } else {
+        revealCell(cell);
+        checkWin(); // Check if player has won after revealing
+    }
+}
+
+
+function updateFlagCounter(change) {
+    remainingFlags += change;
+    document.getElementById('flag-counter').textContent = `Flags Left: ${remainingFlags}`;
 }
 
 
@@ -88,9 +103,6 @@ function updateNeighbors(x, y) {
     }
 }
 
-// Draw the grid and set click listeners
-// script.js (continued)
-
 function drawField() {
     const container = document.getElementById('game-container');
     container.innerHTML = '';
@@ -126,12 +138,14 @@ function toggleFlag(x, y) {
         mineField[x][y].flagged = false;
         cell.classList.remove('flagged');
         cell.textContent = '';
+        updateFlagCounter(1); // Add one flag to the flag counter
     } else {
         // Add flag
         mineField[x][y].flagged = true;
         cell.classList.add('flagged');
         cell.textContent = '🚩';
         playSound(flagSound); // Play flag sound
+        updateFlagCounter(-1); // Remove one flag from the flag counter
     }
 }
 
@@ -204,7 +218,7 @@ function playSound(sound) {
 function showGameOverMessage() {
     isGameRunning = false; // Stop the game
     
-    // Animate end-game notification
+    // Display end-game notification
     showPopupNotification("Game Over! You hit a mine. 😢", true);
     
     // Update button to "Start Game" mode
@@ -223,38 +237,24 @@ function revealAllMines() {
     }
 }
 
-// Reveal all mines on game over
-function revealAllMines() {
-    for (let x = 0; x < gridSize; x++) {
-        for (let y = 0; y < gridSize; y++) {
-            if (mineField[x][y].mine) {
-                const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-                cell.classList.add('mine', 'revealed');
-                cell.textContent = '💣';
-            }
-        }
-    }
-}
 
 // Show popup notification with animation
 function showPopupNotification(message, isEndGame = false) {
     popupNotification.textContent = message;
     popupNotification.classList.add('visible');
-    
+
     if (isEndGame) {
         popupNotification.classList.add('end-animation');
-        showOverlay(); // Show overlay on game over
     } else {
         popupNotification.classList.remove('end-animation');
     }
 
-    // Hide the notification automatically after 2.5 seconds
-    setTimeout(() => {
-        popupNotification.classList.remove('visible');
-        if (isEndGame) {
-            hideOverlay(); // Hide overlay after the notification
-        }
-    }, 2500);
+    // Hide the notification automatically after 2.5 seconds if not a game-over message
+    if (!isEndGame) {
+        setTimeout(() => {
+            popupNotification.classList.remove('visible');
+        }, 2500);
+    }
 }
 
 function updateButtonState() {
@@ -277,5 +277,38 @@ function hideOverlay() {
     overlay.style.display = 'none';
 }
 
+function toggleDarkMode() {
+    const body = document.body;
+    const popupNotification = document.getElementById('popup-notification');
+    const restartButton = document.getElementById('restart-button');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+    // Toggle dark mode class on the body and buttons
+    body.classList.toggle('dark-mode');
+    popupNotification.classList.toggle('dark-mode');
+    restartButton.classList.toggle('dark-mode');
+    
+    // Toggle icon based on the mode
+    darkModeToggle.textContent = body.classList.contains('dark-mode') ? '☀️' : '🌙';
+}
+
+function toggleNotification(message, isEndGame = false) {
+    const notification = document.getElementById('popup-notification');
+    notification.textContent = message;
+    notification.classList.add('visible');
+    notification.classList.toggle('end-animation', isEndGame);
+
+    // Hide the notification after a delay if it’s not an end-game message
+    if (!isEndGame) {
+        setTimeout(() => notification.classList.remove('visible'), 3000);
+    }
+}
+
+function endGame(win) {
+    gameOver = true;
+    toggleNotification(win ? "Congratulations, you win!" : "Game Over!", true);
+}
+
 // Initialize the game on page load
 window.onload = initGame;
+document.body.classList.add('light-mode');
