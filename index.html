@@ -7,24 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Minesweeper</h1>
-    
-    <!-- Overlay for game over -->
-    <div id="overlay" class="hidden"></div>
-    
-    <!-- Popup Notification -->
+    <!-- Dark Mode Toggle Switch -->
+    <button id="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <h1>💣 Minesweeper 💣</h1>
+
+    <!-- Timer and Flag Counter -->
+    <div id="game-info">
+        <span id="flag-counter">Flags Left: 10</span>
+    </div>
+
+    <!-- Floating Notification for Start/Game Over Messages -->
     <div id="popup-notification" class="hidden">Welcome to Minesweeper! Click any cell to start.</div>
-    
+
+    <!-- Game Container -->
     <div id="game-container"></div>
-    
+
     <!-- Dynamic Start/Restart Button -->
     <button id="restart-button" onclick="initGame()">Start Game</button>
-    
+
     <!-- Audio elements for sound effects -->
     <audio id="click-sound" src="assets/sfx/click.wav"></audio>
     <audio id="flag-sound" src="assets/sfx/flag.wav"></audio>
     <audio id="explosion-sound" src="assets/sfx/explosion.wav"></audio>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
