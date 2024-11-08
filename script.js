@@ -17,7 +17,8 @@ let revealedCells = 0;
 
 // Initialize or restart the game
 function initGame() {
-
+    remainingFlags = 10; // Resetting the flag counter in case the game restarts
+    updateFlagCounter(0) // Updating flag counter to add 0 flags to update UI
     mineField = createEmptyField();
     firstClick = true;
     revealedCells = 0;
